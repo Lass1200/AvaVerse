@@ -1,0 +1,1 @@
+echo "# Frontend React" > frontend/README.md

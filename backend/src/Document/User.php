@@ -32,14 +32,11 @@ class User
     public function setEmail(string $email): void { $this->email = $email; }
     public function getPassword(): string { return $this->password; }
     public function setPassword(string $password): void { $this->password = $password; }
+    public function getRole(): string { return $this->role; }
     public function getRoles(): array
-{
-    // On récupère le rôle de la bdd (ex: "admin" ou "user")
-    $role = $this->role; 
-    
-    // On le transforme en majuscules avec le préfixe "ROLE_"
-    return ['ROLE_' . strtoupper($role)];
-}
+    {
+        return ['ROLE_' . strtoupper($this->role)];
+    }
     public function setRole(string $role): void { $this->role = $role; }
     public function getCreatedAt(): \DateTime { return $this->createdAt; }
 }

@@ -13,63 +13,60 @@ use Symfony\Component\Routing\Annotation\Route;
 
 class AvatarController extends AbstractController
 {
-    public function __construct(private DocumentManager $dm) {}
-
-    // T5 — Génération aperçu SVG temps réel
-    #[Route('/api/avatar/generate', methods: ['POST'])]
-    public function generate(Request $request): Response
+    public function __construct(private DocumentManager $dm)
     {
-        $selections = json_decode($request->getContent(), true);
-        $order = ['background', 'visage', 'oreilles', 'yeux', 'nez', 'bouche'];
-
-        try {
-            $svg = '<svg viewBox="0 0 264 280" xmlns="http://www.w3.org/2000/svg">';
-
-            foreach ($order as $categorie) {
-                if (!empty($selections[$categorie])) {
-                    $element = $this->dm->getRepository(Element::class)->findOneBy([
-                        'nom'      => $selections[$categorie],
-                        'categorie'=> $categorie,
-                        'actif'    => true
-                    ]);
-                    if ($element) {
-                        $svg .= $element->getSvgContent();
-                    }
-                }
-            }
-
-            $svg .= '</svg>';
-
-        } catch (\Exception $e) {
-            $defaultPath = $this->getParameter('kernel.project_dir') . '/public/avatars/avatar_default.svg';
-            $svg = file_exists($defaultPath)
-                ? file_get_contents($defaultPath)
-                : '<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg"><circle cx="100" cy="100" r="80" fill="#ccc"/></svg>';
-        }
-
-        return new Response($svg, 200, ['Content-Type' => 'image/svg+xml']);
     }
 
+    // T5 — Génération aperçu SVG temps réel
+    // T5 — Génération aperçu SVG temps réel
+    #[Route('/api/avatar/generate', methods: ['POST'])]
+    // Dans ton AvatarController.php
+    public function generate(Request $request)
+    {
+        $data = json_decode($request->getContent(), true);
+        $selections = $data['choices'] ?? [];
+
+        // Ton tableau d'ordre pour superposer les éléments
+        $order = ['background', 'skin', 'clothes', 'top', 'facialhair', 'mouth', 'nose', 'eyes', 'eyebrow'];
+
+        $svgParts = [];
+
+        foreach ($order as $category) {
+            $name = $selections[$category] ?? 'Default';
+
+            $element = $this->dm->getRepository(Element::class)->findOneBy([
+                'nom' => $name,
+                'categorie' => $category
+            ]);
+
+            // On envoie le contenu du SVG dans le tableau
+            $svgParts[$category] = $element ? $element->getSvgContent() : '';
+        }
+        $svgParts['skinName'] = $selections['skin'] ?? 'Default';
+        // IMPORTANT : On renvoie un JSON, PAS du HTML/SVG
+        return $this->json($svgParts);
+    }
     // T6 — Soumission d'un avatar
     #[Route('/api/avatars', methods: ['POST'])]
     public function submit(Request $request): JsonResponse
     {
         $this->denyAccessUnlessGranted('IS_AUTHENTICATED_FULLY');
 
-        $data       = json_decode($request->getContent(), true);
-        $userId     = $this->getUser()->getUserIdentifier();
+        $data = json_decode($request->getContent(), true);
+        $userId = $this->getUser()->getUserIdentifier();
         $selections = $data['selections'] ?? [];
-        $nom        = $data['nom'] ?? 'Mon Avatar';
+        $nom = $data['nom'] ?? 'Mon Avatar';
 
         // Générer le SVG final
-        $order = ['background', 'visage', 'oreilles', 'yeux', 'nez', 'bouche'];
+        // Dans AvatarController.php
+       $order = ['background', 'skin', 'body', 'clothes', 'top', 'facialhair', 'mouth', 'nose', 'eyes', 'eyebrow'];
         $svgContent = '<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">';
         foreach ($order as $categorie) {
             if (!empty($selections[$categorie])) {
                 $element = $this->dm->getRepository(Element::class)->findOneBy([
-                    'nom'       => $selections[$categorie],
+                    'nom' => $selections[$categorie],
                     'categorie' => $categorie,
-                    'actif'     => true
+                    'actif' => true
                 ]);
                 if ($element) {
                     $svgContent .= $element->getSvgContent();
@@ -79,7 +76,7 @@ class AvatarController extends AbstractController
         $svgContent .= '</svg>';
 
         // Sauvegarder le fichier SVG
-        $filename  = uniqid('avatar_') . '.svg';
+        $filename = uniqid('avatar_') . '.svg';
         $uploadDir = $this->getParameter('kernel.project_dir') . '/public/avatars/';
         file_put_contents($uploadDir . $filename, $svgContent);
 
@@ -96,8 +93,8 @@ class AvatarController extends AbstractController
 
         return $this->json([
             'message' => 'Avatar soumis, en attente de validation',
-            '_id'     => $avatar->getId(),
-            'status'  => 'pending'
+            '_id' => $avatar->getId(),
+            'status' => 'pending'
         ], 201);
     }
 
@@ -106,17 +103,17 @@ class AvatarController extends AbstractController
     public function myAvatars(): JsonResponse
     {
         $this->denyAccessUnlessGranted('IS_AUTHENTICATED_FULLY');
-        $userId  = $this->getUser()->getUserIdentifier();
+        $userId = $this->getUser()->getUserIdentifier();
         $avatars = $this->dm->getRepository(Avatar::class)->findBy(['userId' => $userId]);
 
         $data = [];
         foreach ($avatars as $avatar) {
             $data[] = [
-                '_id'         => $avatar->getId(),
-                'nom'         => $avatar->getNom(),
-                'fichier'     => $avatar->getFichier(),
-                'status'      => $avatar->getStatus(),
-                'createdAt'   => $avatar->getCreatedAt()->format('Y-m-d'),
+                '_id' => $avatar->getId(),
+                'nom' => $avatar->getNom(),
+                'fichier' => $avatar->getFichier(),
+                'status' => $avatar->getStatus(),
+                'createdAt' => $avatar->getCreatedAt()->format('Y-m-d'),
                 'validatedAt' => $avatar->getValidatedAt()?->format('Y-m-d'),
             ];
         }
@@ -173,7 +170,7 @@ class AvatarController extends AbstractController
             file_get_contents($filePath),
             200,
             [
-                'Content-Type'        => 'image/svg+xml',
+                'Content-Type' => 'image/svg+xml',
                 'Content-Disposition' => 'attachment; filename="' . $avatar->getNom() . '.svg"'
             ]
         );

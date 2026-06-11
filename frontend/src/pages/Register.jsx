@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
+import { registerWithPseudo } from '../services/api.js';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
-
-export default function Register() {
+export default function Register({ session }) {
   const [form, setForm] = useState({
     pseudo: 'ZakMarket2026',
     password: '',
@@ -31,23 +30,11 @@ export default function Register() {
 
     setLoading(true);
     try {
-      const response = await fetch(`${API_URL}/api/auth/register`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          email: `${form.pseudo.toLowerCase()}@avaverse.local`,
-          pseudo: form.pseudo,
-          password: form.password
-        })
-      });
-
-      const data = await response.json().catch(() => ({}));
-      if (!response.ok) {
-        throw new Error(data.error || 'Impossible de créer le compte.');
-      }
+      const data = await registerWithPseudo(form);
 
       if (data.token) {
-        localStorage.setItem('avaverse_token', data.token);
+        session.login(data.token);
+        return;
       }
       setStatus('Compte créé avec succès.');
     } catch (error) {
@@ -99,7 +86,7 @@ export default function Register() {
             {loading ? 'Création...' : 'Créer mon compte'}
           </button>
 
-          <button className="login-link" type="button">
+          <button className="login-link" type="button" onClick={() => session.navigate('login')}>
             J’ai déjà un compte
           </button>
 

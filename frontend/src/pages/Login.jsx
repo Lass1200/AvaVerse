@@ -3,8 +3,9 @@ import { loginWithPseudo } from '../services/api.js';
 
 export default function Login({ session }) {
   const [form, setForm] = useState({
-    pseudo: 'ZakMarket2026',
-    password: ''
+    pseudo: 'Griche1524',
+    password: '',
+    isAdmin: false
   });
   const [status, setStatus] = useState('');
   const [loading, setLoading] = useState(false);
@@ -25,6 +26,12 @@ export default function Login({ session }) {
     setLoading(true);
     try {
       const data = await loginWithPseudo(form);
+
+      if (form.isAdmin && data.role !== 'admin') {
+        setStatus('Ce compte n’est pas administrateur.');
+        return;
+      }
+
       session.login(data.token);
     } catch (error) {
       setStatus(error.message);
@@ -47,7 +54,7 @@ export default function Login({ session }) {
             type="text"
             value={form.pseudo}
             onChange={(event) => updateField('pseudo', event.target.value)}
-            placeholder="ZakMarket2026"
+            placeholder="Griche1524"
             required
           />
 
@@ -60,6 +67,16 @@ export default function Login({ session }) {
             placeholder="••••••••"
             required
           />
+
+          <label className="checkbox-row" htmlFor="adminLogin">
+            <input
+              id="adminLogin"
+              type="checkbox"
+              checked={form.isAdmin}
+              onChange={(event) => updateField('isAdmin', event.target.checked)}
+            />
+            <span>Connexion administrateur</span>
+          </label>
 
           <button className="primary-button" type="submit" disabled={loading}>
             {loading ? 'Connexion...' : 'Se connecter'}

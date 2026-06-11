@@ -92,4 +92,8 @@ function Header({ session }) {
       </button>
     </header>
   );
+<<<<<<< HEAD
 }
+=======
+}
+>>>>>>> dabb2f65cbdde301c5cd28e2569e0df190cebaa3

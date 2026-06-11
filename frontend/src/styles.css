@@ -441,16 +441,12 @@ img {
   padding: 28px;
 }
 
-<<<<<<< HEAD
-
 .avatar-preview svg {
   width: min(264px, 82%);
   height: auto;
   filter: drop-shadow(0 20px 28px rgba(18, 24, 38, .14));
 }
 
-=======
->>>>>>> dabb2f65cbdde301c5cd28e2569e0df190cebaa3
 .avatar-preview img {
   width: min(260px, 82%);
   filter: drop-shadow(0 20px 28px rgba(18, 24, 38, .14));
@@ -534,8 +530,4 @@ img {
   .option-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
-<<<<<<< HEAD
 }
-=======
-}
->>>>>>> dabb2f65cbdde301c5cd28e2569e0df190cebaa3

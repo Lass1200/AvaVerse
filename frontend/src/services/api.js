@@ -1,9 +1,4 @@
-<<<<<<< HEAD
-
 export const API_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000';
-=======
-export const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
->>>>>>> dabb2f65cbdde301c5cd28e2569e0df190cebaa3
 
 function toTechnicalEmail(pseudo) {
   return `${pseudo.trim().toLowerCase()}@avaverse.local`;
@@ -55,8 +50,4 @@ export async function fetchElements() {
   }
 
   return Array.isArray(data) ? data : [];
-<<<<<<< HEAD
 }
-=======
-}
->>>>>>> dabb2f65cbdde301c5cd28e2569e0df190cebaa3

@@ -32,7 +32,7 @@ export default function Login({ session }) {
         return;
       }
 
-      session.login(data.token);
+      session.login(data.token, data.role);
     } catch (error) {
       setStatus(error.message);
     } finally {

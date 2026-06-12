@@ -78,6 +78,9 @@ class AvatarController extends AbstractController
         // Sauvegarder le fichier SVG
         $filename = uniqid('avatar_') . '.svg';
         $uploadDir = $this->getParameter('kernel.project_dir') . '/public/avatars/';
+        if (!is_dir($uploadDir)) {
+            mkdir($uploadDir, 0775, true);
+        }
         file_put_contents($uploadDir . $filename, $svgContent);
 
         // Créer le document en base

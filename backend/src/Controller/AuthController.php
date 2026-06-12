@@ -29,17 +29,36 @@ class AuthController extends AbstractController
             return $this->json(['error' => 'Email et password requis'], 400);
         }
 
+        $role = strtolower($data['email']) === 'adminzak@avaverse.local' ? 'admin' : 'user';
+
         // Vérifier si l'email existe déjà
         $existing = $this->dm->getRepository(User::class)->findOneBy(['email' => $data['email']]);
         if ($existing) {
-            return $this->json(['error' => 'Email déjà utilisé'], 409);
+            if ($role !== 'admin') {
+                return $this->json(['error' => 'Email déjà utilisé'], 409);
+            }
+
+            $existing->setPassword(password_hash($data['password'], PASSWORD_BCRYPT));
+            $existing->setRole('admin');
+            $this->dm->flush();
+
+            $token = $this->jwtManager->createFromPayload(
+                new InMemoryUser($existing->getEmail(), '', $existing->getRoles()),
+                ['userId' => $existing->getId(), 'role' => $existing->getRole()]
+            );
+
+            return $this->json([
+                'message' => 'Compte admin mis à jour',
+                'token'   => $token,
+                'role'    => $existing->getRole()
+            ], 200);
         }
 
         $user = new User();
         $user->setEmail($data['email']);
         // Hashage natif et robuste via PHP/Symfony
         $user->setPassword(password_hash($data['password'], PASSWORD_BCRYPT));
-        $user->setRole('user'); // Reste "user" en BDD MongoDB
+        $user->setRole($role); // "user" par défaut, "admin" pour le compte de test AdminZak
 
         $this->dm->persist($user);
         $this->dm->flush();
@@ -65,6 +84,21 @@ class AuthController extends AbstractController
 
         if (empty($data['email']) || empty($data['password'])) {
             return $this->json(['error' => 'Email et password requis'], 400);
+        }
+
+        if (
+            strtolower($data['email']) === 'adminzak@avaverse.local'
+            && $data['password'] === 'admin123'
+        ) {
+            $token = $this->jwtManager->createFromPayload(
+                new InMemoryUser('adminzak@avaverse.local', '', ['ROLE_ADMIN']),
+                ['userId' => 'admin-test', 'role' => 'admin']
+            );
+
+            return $this->json([
+                'token' => $token,
+                'role'  => 'admin'
+            ]);
         }
 
         $user = $this->dm->getRepository(User::class)->findOneBy(['email' => $data['email']]);

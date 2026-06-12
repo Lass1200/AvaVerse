@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { submitAvatar } from '../services/api.js';
 
 const AVATAR_URL =
   'https://api.dicebear.com/9.x/avataaars/svg?seed=avaverse-maquette&backgroundColor=b6e3f4&style=circle';
@@ -30,6 +31,8 @@ const DEFAULT_SELECTIONS = {
 export default function CreateAvatar({ session }) {
   const [activeCategory, setActiveCategory] = useState('cheveux');
   const [selections, setSelections] = useState(DEFAULT_SELECTIONS);
+  const [status, setStatus] = useState('');
+  const [saving, setSaving] = useState(false);
   const activeElements = MOCK_ELEMENTS[activeCategory] || [];
 
   function selectOption(option) {
@@ -37,6 +40,24 @@ export default function CreateAvatar({ session }) {
       ...current,
       [activeCategory]: option
     }));
+  }
+
+  async function handleSubmitAvatar() {
+    setStatus('');
+    setSaving(true);
+
+    try {
+      await submitAvatar(session.token, {
+        nom: `Avatar ${new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}`,
+        selections
+      });
+      setStatus('Avatar envoyé à l’admin. Il apparaît dans ta bibliothèque.');
+      session.navigate('library');
+    } catch (error) {
+      setStatus(error.message);
+    } finally {
+      setSaving(false);
+    }
   }
 
   return (
@@ -114,8 +135,11 @@ export default function CreateAvatar({ session }) {
             <div className="preview-actions">
               <button type="button">Sauvegarder</button>
               <button type="button">Télécharger</button>
-              <button type="button" className="primary-inline">Demander validation</button>
+              <button type="button" className="primary-inline" onClick={handleSubmitAvatar} disabled={saving}>
+                {saving ? 'Envoi...' : 'Demander validation'}
+              </button>
             </div>
+            {status ? <div className="preview-status">{status}</div> : null}
           </aside>
         </div>
       </section>
@@ -132,7 +156,7 @@ function Header({ session }) {
       <nav className="top-nav" aria-label="Navigation principale">
         <button type="button" onClick={() => session.navigate('create')}>Accueil</button>
         <button className="active" type="button" onClick={() => session.navigate('create')}>Créer</button>
-        <button type="button" onClick={() => session.navigate('create')}>Bibliothèque</button>
+        <button type="button" onClick={() => session.navigate('library')}>Bibliothèque</button>
         <button type="button" onClick={() => session.navigate('create')}>Profil</button>
       </nav>
       <button className="logout-button" type="button" onClick={session.logout}>

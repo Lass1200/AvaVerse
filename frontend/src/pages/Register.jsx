@@ -3,7 +3,7 @@ import { registerWithPseudo } from '../services/api.js';
 
 export default function Register({ session }) {
   const [form, setForm] = useState({
-    pseudo: 'ZakMarket2026',
+    pseudo: 'Griche1524',
     password: '',
     confirmPassword: ''
   });
@@ -33,7 +33,7 @@ export default function Register({ session }) {
       const data = await registerWithPseudo(form);
 
       if (data.token) {
-        session.login(data.token);
+        session.login(data.token, data.role);
         return;
       }
       setStatus('Compte créé avec succès.');
@@ -46,7 +46,7 @@ export default function Register({ session }) {
 
   return (
     <main className="register-page">
-      <Header />
+      <Header session={session} />
       <section className="register-hero">
         <form className="register-card" onSubmit={handleSubmit}>
           <h1>Créer un compte</h1>
@@ -58,7 +58,7 @@ export default function Register({ session }) {
             type="text"
             value={form.pseudo}
             onChange={(event) => updateField('pseudo', event.target.value)}
-            placeholder="ZakMarket2026"
+            placeholder="Griche1524"
             required
           />
 
@@ -72,7 +72,7 @@ export default function Register({ session }) {
             required
           />
 
-          <label htmlFor="confirmPassword">Mot de passe</label>
+          <label htmlFor="confirmPassword">Confirmation du mot de passe</label>
           <input
             id="confirmPassword"
             type="password"
@@ -83,7 +83,7 @@ export default function Register({ session }) {
           />
 
           <button className="primary-button" type="submit" disabled={loading}>
-            {loading ? 'Création...' : 'Créer mon compte'}
+            {loading ? 'Création...' : 'Créer mon espace'}
           </button>
 
           <button className="login-link" type="button" onClick={() => session.navigate('login')}>
@@ -97,18 +97,18 @@ export default function Register({ session }) {
   );
 }
 
-function Header() {
+function Header({ session }) {
   return (
     <header className="site-header">
-      <a className="brand" href="/">
+      <button className="brand brand-button" type="button" onClick={() => session.navigate('login')}>
         <img src="/logo.png" alt="AvaVerse" />
-      </a>
+      </button>
       <nav className="top-nav" aria-label="Navigation principale">
-        <a href="/">Accueil</a>
-        <a className="active" href="/register">Compte</a>
-        <a href="/avatars">Bibliothèque</a>
+        <button type="button" onClick={() => session.navigate('login')}>Accueil</button>
+        <button className="active" type="button" onClick={() => session.navigate('register')}>Compte</button>
+        <button type="button" onClick={() => session.navigate('login')}>Bibliothèque</button>
       </nav>
-      <button className="logout-button" type="button">
+      <button className="logout-button" type="button" onClick={() => session.navigate('login')}>
         Retour
       </button>
     </header>

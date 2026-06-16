@@ -33,13 +33,24 @@ export default function CreateAvatar({ session }) {
     const [status, setStatus] = useState('Chargement du catalogue...');
     const [avatarName, setAvatarName] = useState('Mon Avatar');
     const [isSaving, setIsSaving] = useState(false);
+    const [editSource, setEditSource] = useState(null);
 
     useEffect(() => {
+        const draft = loadEditDraft();
+        if (draft?.selections) {
+            setSelections({
+                ...DEFAULT_SELECTIONS,
+                ...draft.selections
+            });
+            setAvatarName(`Copie de ${draft.sourceName || 'Mon Avatar'}`);
+            setEditSource(draft);
+        }
+
         fetchElements()
             .then((data) => {
                 setElements(data);
                 setActiveCategory('skin');
-                setStatus('');
+                setStatus(draft ? 'Modification depuis un avatar existant : l’original reste validé, la copie sera soumise à l’admin.' : '');
             })
             .catch((err) => {
                 console.error(err);
@@ -128,6 +139,8 @@ export default function CreateAvatar({ session }) {
             }
 
             setStatus('Avatar soumis avec succès !');
+            localStorage.removeItem('avaverse_edit_draft');
+            setEditSource(null);
             setTimeout(() => {
                 session.navigate('library');
             }, 1500);
@@ -146,7 +159,12 @@ export default function CreateAvatar({ session }) {
             <section className="creator-shell">
                 <div className="creator-heading">
                     <p>CRÉATION D’AVATAR</p>
-                    <h1>Personnalisation</h1>
+                    <h1>{editSource ? 'Modifier une copie' : 'Personnalisation'}</h1>
+                    {editSource ? (
+                        <span>
+                            Avatar source : {editSource.sourceName}. Enregistrer crée une nouvelle demande de validation.
+                        </span>
+                    ) : null}
                 </div>
 
                 {status ? <div className="notice-strip">{status}</div> : null}
@@ -206,7 +224,7 @@ export default function CreateAvatar({ session }) {
                                 disabled={isSaving}
                                 style={{ width: '100%', padding: '10px', backgroundColor: '#007bff', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}
                             >
-                                {isSaving ? 'Envoi...' : 'Soumettre pour validation'}
+                                {isSaving ? 'Envoi...' : editSource ? 'Soumettre la copie modifiée' : 'Soumettre pour validation'}
                             </button>
                         </div>
                     </aside>
@@ -226,6 +244,7 @@ function Header({ session }) {
                 <button type="button" onClick={() => session.navigate('create')}>Accueil</button>
                 <button className="active" type="button" onClick={() => session.navigate('create')}>Créer</button>
                 <button type="button" onClick={() => session.navigate('library')}>Bibliothèque</button>
+                <button type="button" onClick={() => session.navigate('profile')}>Profil</button>
             </nav>
             <button className="logout-button" type="button" onClick={session.logout}>
                 Déconnexion
@@ -238,4 +257,14 @@ function formatOptionName(value) {
     return String(value)
         .replace(/([a-z])([A-Z])/g, '$1 $2')
         .replace(/[-_]/g, ' ');
+}
+
+function loadEditDraft() {
+    try {
+        const rawDraft = localStorage.getItem('avaverse_edit_draft');
+        return rawDraft ? JSON.parse(rawDraft) : null;
+    } catch (error) {
+        localStorage.removeItem('avaverse_edit_draft');
+        return null;
+    }
 }

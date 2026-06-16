@@ -2,10 +2,10 @@ import React, { useMemo, useState, useEffect } from 'react';
 import CreateAvatar from './pages/CreateAvatar.jsx';
 import Login from './pages/Login.jsx';
 import MyAvatars from './pages/MyAvatars.jsx';
+import Profile from './pages/Profile.jsx';
 import Register from './pages/Register.jsx';
 import Admin from './pages/Admin.jsx';
 
-// Décodeur sécurisé de token JWT pour extraire le vrai rôle
 function decodeToken(token) {
   try {
     if (!token || token === 'null' || token === 'undefined') return null;
@@ -24,28 +24,29 @@ function decodeToken(token) {
 export default function App() {
   const [token, setToken] = useState(null);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [pseudo, setPseudo] = useState('Utilisateur');
   const [page, setPage] = useState('login');
   const [isLoading, setIsLoading] = useState(true);
 
-  // Restauration synchrone et sécurisée de la session au rechargement (F5)
+  // Fusion : Restauration de la session ET du pseudo au F5
   useEffect(() => {
     const savedToken = sessionStorage.getItem('avaverse_token');
     const savedPage = sessionStorage.getItem('avaverse_page');
+    const savedPseudo = sessionStorage.getItem('avaverse_pseudo');
 
     if (savedToken && savedToken !== 'null' && savedToken !== 'undefined') {
       const cleanToken = savedToken.replace(/['"]+/g, '');
       const decoded = decodeToken(cleanToken);
       
-      // Détermination stricte du rôle
       const userIsAdmin = decoded?.role === 'admin' || decoded?.isAdmin === true || sessionStorage.getItem('avaverse_is_admin') === 'true';
 
       setToken(cleanToken);
       setIsAdmin(userIsAdmin);
+      setPseudo(savedPseudo || 'Utilisateur');
       setPage(savedPage || (userIsAdmin ? 'admin' : 'create'));
     } else {
       setPage('login');
     }
-    // Fin de la restauration, on libère l'affichage
     setIsLoading(false);
   }, []);
 
@@ -56,7 +57,8 @@ export default function App() {
       isAuthenticated,
       isAdmin,
       token,
-      login(authToken, userRole) {
+      pseudo, // Ajout du pseudo pour la page Profile de ton binôme
+      login(authToken, userRole, userPseudo) {
         if (!authToken) return;
         const cleanToken = authToken.replace(/['"]+/g, '');
         sessionStorage.setItem('avaverse_token', cleanToken);
@@ -68,6 +70,11 @@ export default function App() {
         sessionStorage.setItem('avaverse_is_admin', userIsAdmin ? 'true' : 'false');
         setIsAdmin(userIsAdmin);
 
+        // Sauvegarde du pseudo
+        const finalPseudo = userPseudo || 'Utilisateur';
+        sessionStorage.setItem('avaverse_pseudo', finalPseudo);
+        setPseudo(finalPseudo);
+
         const destPage = userIsAdmin ? 'admin' : 'create';
         sessionStorage.setItem('avaverse_page', destPage);
         setPage(destPage);
@@ -76,6 +83,7 @@ export default function App() {
         sessionStorage.clear();
         setToken(null);
         setIsAdmin(false);
+        setPseudo('Utilisateur');
         setPage('login');
       },
       navigate(nextPage) {
@@ -83,9 +91,8 @@ export default function App() {
         setPage(nextPage);
       },
     };
-  }, [isAuthenticated, token, isAdmin]);
+  }, [isAuthenticated, token, isAdmin, pseudo]);
 
-  // Écran d'attente anti race-condition pendant la lecture du sessionStorage
   if (isLoading) {
     return (
       <div style={{ background: '#1a1a1a', color: '#fff', height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'sans-serif' }}>
@@ -94,19 +101,14 @@ export default function App() {
     );
   }
 
-  // Écrans non connectés
   if (!isAuthenticated) {
     return page === 'register' ? <Register session={session} /> : <Login session={session} />;
   }
 
-  // Aiguillage strict des pages pour les utilisateurs connectés
-  if (page === 'admin') {
-    return <Admin session={session} />;
-  }
-
-  if (page === 'library') {
-    return <MyAvatars session={session} />;
-  }
+  // Aiguillage incluant la nouvelle page Profile
+  if (page === 'admin') return <Admin session={session} />;
+  if (page === 'library') return <MyAvatars session={session} />;
+  if (page === 'profile') return <Profile session={session} />;
 
   return <CreateAvatar session={session} />;
 }

@@ -111,6 +111,7 @@ img {
 }
 
 .header-actions {
+  position: relative;
   display: inline-flex;
   justify-self: end;
   align-items: center;
@@ -126,6 +127,25 @@ img {
   border-radius: 8px;
   background: #fff;
   box-shadow: 0 8px 18px rgba(18, 24, 38, .06);
+  cursor: pointer;
+}
+
+.notification-button::before {
+  content: "🔔";
+  font-size: 14px;
+}
+
+.notification-button span {
+  position: absolute;
+  min-width: 17px;
+  height: 17px;
+  transform: translate(12px, -12px);
+  border-radius: 999px;
+  background: var(--violet);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 950;
+  line-height: 17px;
 }
 
 .register-hero {
@@ -676,30 +696,30 @@ img {
 }
 
 .notification-popover {
-  position: absolute;
-  top: 76px;
-  right: 0;
-  z-index: 5;
-  width: min(360px, calc(100vw - 40px));
+  position: fixed;
+  top: 82px;
+  right: 34px;
+  z-index: 2147483647;
+  width: min(320px, calc(100vw - 28px));
   overflow: hidden;
   border: 1px solid rgba(18, 24, 38, .12);
-  border-radius: 14px;
+  border-radius: 12px;
   background: #fff;
-  box-shadow: 0 28px 70px rgba(18, 24, 38, .18);
+  box-shadow: 0 28px 70px rgba(18, 24, 38, .26);
 }
 
 .notification-head {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 18px 20px;
+  padding: 14px 16px;
   background: var(--ink);
   color: #fff;
 }
 
 .notification-head h2 {
   margin: 0;
-  font-size: 22px;
+  font-size: 18px;
 }
 
 .notification-head button {
@@ -709,37 +729,68 @@ img {
   font-size: 22px;
 }
 
+.notification-list {
+  max-height: 280px;
+  overflow: auto;
+}
+
 .notification-item {
   display: grid;
-  grid-template-columns: 42px 1fr;
-  gap: 12px;
-  padding: 18px 20px;
+  grid-template-columns: 34px 1fr;
+  gap: 10px;
+  padding: 13px 16px;
   border-bottom: 1px solid var(--line);
 }
 
 .notification-item span {
   display: grid;
-  width: 34px;
-  height: 34px;
+  width: 28px;
+  height: 28px;
   place-items: center;
-  border-radius: 12px;
+  border-radius: 10px;
   background: rgba(124, 60, 255, .12);
   color: var(--violet);
   font-weight: 950;
 }
 
+.notification-approved span {
+  background: #edf9f2;
+  color: #159456;
+}
+
+.notification-pending span {
+  background: #fff6d6;
+  color: #9b7300;
+}
+
+.notification-rejected span {
+  background: #ffecee;
+  color: #c73545;
+}
+
 .notification-item strong {
   display: block;
   color: var(--ink);
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 950;
 }
 
 .notification-item p {
   margin: 4px 0 0;
   color: var(--muted);
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 800;
+  line-height: 1.35;
+}
+
+.notification-footer-button {
+  width: 100%;
+  min-height: 40px;
+  border: 0;
+  background: #fff;
+  color: var(--violet);
+  font-weight: 950;
+  cursor: pointer;
 }
 
 .library-heading {
@@ -812,6 +863,8 @@ img {
 }
 
 .avatar-library-card {
+  position: relative;
+  z-index: 0;
   overflow: hidden;
   border: 1px solid rgba(231, 234, 243, .95);
   border-radius: 12px;

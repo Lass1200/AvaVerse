@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import NotificationMenu from './NotificationMenu.jsx';
 
 const statusLabels = {
   approved: 'Validé',
@@ -208,7 +209,7 @@ function Header({ session }) {
         <button className="active" type="button" onClick={() => session.navigate('profile')}>Profil</button>
       </nav>
       <div className="header-actions">
-        <button className="notification-button" type="button" aria-label="Notifications"></button>
+        <NotificationMenu session={session} />
         <button className="logout-button" type="button" onClick={session.logout}>
           Déconnexion
         </button>

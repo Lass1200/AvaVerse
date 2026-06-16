@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { fetchElements } from '../services/api.js';
 import { SKIN_COLORS } from '../utils/svgFragment.js';
 import AvatarRenderer from './AvatarRenderer.jsx';
+import NotificationMenu from './NotificationMenu.jsx';
 
 const CATEGORY_LABELS = {
     background: 'Fond',
@@ -246,9 +247,12 @@ function Header({ session }) {
                 <button type="button" onClick={() => session.navigate('library')}>Bibliothèque</button>
                 <button type="button" onClick={() => session.navigate('profile')}>Profil</button>
             </nav>
-            <button className="logout-button" type="button" onClick={session.logout}>
-                Déconnexion
-            </button>
+            <div className="header-actions">
+                <NotificationMenu session={session} />
+                <button className="logout-button" type="button" onClick={session.logout}>
+                    Déconnexion
+                </button>
+            </div>
         </header>
     );
 }

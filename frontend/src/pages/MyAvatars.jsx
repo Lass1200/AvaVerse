@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import NotificationMenu from './NotificationMenu.jsx';
 
 const statusLabels = {
   approved: 'Validé',
@@ -10,7 +11,7 @@ export default function MyAvatars({ session }) {
     const [avatars, setAvatars] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
-    const [notificationsOpen, setNotificationsOpen] = useState(false);
+    const [activeFilter, setActiveFilter] = useState('all');
 
     useEffect(() => {
         fetchAvatars();
@@ -43,6 +44,21 @@ export default function MyAvatars({ session }) {
         pending: avatars.filter((avatar) => avatar.status === 'pending').length,
         rejected: avatars.filter((avatar) => avatar.status === 'rejected').length
     }), [avatars]);
+
+    const filteredAvatars = useMemo(() => {
+        if (activeFilter === 'all') {
+            return avatars;
+        }
+
+        return avatars.filter((avatar) => avatar.status === activeFilter);
+    }, [activeFilter, avatars]);
+
+    const activeFilterLabel = {
+        all: 'Tous les avatars',
+        approved: 'Avatars validés',
+        pending: 'Avatars en attente',
+        rejected: 'Avatars refusés'
+    }[activeFilter];
 
     const handleDelete = async (id) => {
         if (!window.confirm('Supprimer cet avatar définitivement ?')) return;
@@ -109,7 +125,7 @@ export default function MyAvatars({ session }) {
 
     return (
         <main className="app-page library-page">
-            <Header session={session} onNotifications={() => setNotificationsOpen((open) => !open)} />
+            <Header session={session} />
 
             <section className="library-layout">
                 <aside className="library-sidebar">
@@ -117,19 +133,35 @@ export default function MyAvatars({ session }) {
                     <h1>Mes avatars</h1>
 
                     <nav className="library-filter" aria-label="Filtres avatars">
-                        <button className="active" type="button">
+                        <button
+                            className={activeFilter === 'all' ? 'active' : ''}
+                            type="button"
+                            onClick={() => setActiveFilter('all')}
+                        >
                             <span>Tous</span>
                             <strong>{counts.total}</strong>
                         </button>
-                        <button type="button">
+                        <button
+                            className={activeFilter === 'approved' ? 'active' : ''}
+                            type="button"
+                            onClick={() => setActiveFilter('approved')}
+                        >
                             <span>Validés</span>
                             <strong>{counts.approved}</strong>
                         </button>
-                        <button type="button">
+                        <button
+                            className={activeFilter === 'pending' ? 'active' : ''}
+                            type="button"
+                            onClick={() => setActiveFilter('pending')}
+                        >
                             <span>En attente</span>
                             <strong>{counts.pending}</strong>
                         </button>
-                        <button type="button">
+                        <button
+                            className={activeFilter === 'rejected' ? 'active' : ''}
+                            type="button"
+                            onClick={() => setActiveFilter('rejected')}
+                        >
                             <span>Refusés</span>
                             <strong>{counts.rejected}</strong>
                         </button>
@@ -142,82 +174,19 @@ export default function MyAvatars({ session }) {
                 </aside>
 
                 <section className="library-content">
-                    <div className="library-alert">
-                        <div className="alert-icon"></div>
-                        <div>
-                            <strong>{counts.pending ? `${counts.pending} avatar en attente de validation` : 'Aucune validation en attente'}</strong>
-                            <span>Les avatars soumis apparaissent ici avec leur statut admin.</span>
-                        </div>
-                        <button type="button" onClick={() => setNotificationsOpen(true)}>Voir notifications</button>
-                    </div>
-
-                    {notificationsOpen ? (
-                        <aside className="notification-popover" aria-label="Notifications">
-                            <div className="notification-head">
-                                <h2>Notifications</h2>
-                                <button type="button" onClick={() => setNotificationsOpen(false)}>×</button>
-                            </div>
-                            <div className="notification-item">
-                                <span>✓</span>
-                                <div>
-                                    <strong>Avatar accepté</strong>
-                                    <p>Ton SVG peut maintenant être téléchargé.</p>
-                                </div>
-                            </div>
-                            <div className="notification-item">
-                                <span></span>
-                                <div>
-                                    <strong>Validation admin</strong>
-                                    <p>Délai estimé : 15 minutes après soumission.</p>
-                                </div>
-                            </div>
-                            <div className="notification-item">
-                                <span>×</span>
-                                <div>
-                                    <strong>Avatar refusé</strong>
-                                    <p>Modifie l'accessoire premium puis renvoie.</p>
-                                </div>
-                            </div>
-                        </aside>
-                    ) : null}
-
-                    <div className="library-heading">
-                        <p className="eyebrow">GESTION</p>
-                        <h2>Bibliothèque d'avatars</h2>
-                        <span>Modifier, supprimer, sauvegarder plusieurs avatars et suivre leur validation.</span>
-                    </div>
-
-                    <div className="library-stats">
-                        <article>
-                            <strong>{counts.approved}</strong>
-                            <div>
-                                <h3>Validés</h3>
-                                <p>téléchargeables</p>
-                            </div>
-                        </article>
-                        <article>
-                            <strong>{counts.pending}</strong>
-                            <div>
-                                <h3>En attente</h3>
-                                <p>soumis admin</p>
-                            </div>
-                        </article>
-                        <article>
-                            <strong>{counts.rejected}</strong>
-                            <div>
-                                <h3>Refusé</h3>
-                                <p>à modifier</p>
-                            </div>
-                        </article>
-                    </div>
-
-                    {loading && <div className="notice-strip">Chargement de vos créations...</div>}
-                    {error && <div className="notice-strip">{error}</div>}
-
-                    {!loading && avatars.length ? (
-                        <div className="avatar-library-grid">
-                            {avatars.map((avatar) => (
-                                <article className="avatar-library-card" key={avatar._id}>
+		                    <div className="library-heading">
+	                        <p className="eyebrow">GESTION</p>
+	                        <h2>Bibliothèque d'avatars</h2>
+	                        <span>{activeFilterLabel} : {filteredAvatars.length} résultat{filteredAvatars.length > 1 ? 's' : ''}.</span>
+	                    </div>
+	
+	                    {loading && <div className="notice-strip">Chargement de vos créations...</div>}
+	                    {error && <div className="notice-strip">{error}</div>}
+	
+	                    {!loading && filteredAvatars.length ? (
+	                        <div className="avatar-library-grid">
+	                            {filteredAvatars.map((avatar) => (
+	                                <article className="avatar-library-card" key={avatar._id}>
                                     <div className="avatar-card-preview">
                                         {avatar.svgContent ? (
                                             <div
@@ -260,20 +229,28 @@ export default function MyAvatars({ session }) {
                         </div>
                     ) : null}
 
-                    {!loading && !avatars.length ? (
-                        <div className="empty-library">
-                            <h3>Aucun avatar pour le moment</h3>
-                            <p>Crée ton premier avatar, puis demande sa validation pour le voir apparaître ici.</p>
-                            <button type="button" onClick={() => session.navigate('create')}>Créer un avatar</button>
-                        </div>
-                    ) : null}
+	                    {!loading && !avatars.length ? (
+	                        <div className="empty-library">
+	                            <h3>Aucun avatar pour le moment</h3>
+	                            <p>Crée ton premier avatar, puis demande sa validation pour le voir apparaître ici.</p>
+	                            <button type="button" onClick={() => session.navigate('create')}>Créer un avatar</button>
+	                        </div>
+	                    ) : null}
+
+	                    {!loading && avatars.length > 0 && filteredAvatars.length === 0 ? (
+	                        <div className="empty-library">
+	                            <h3>Aucun résultat</h3>
+	                            <p>Aucun avatar ne correspond au filtre “{activeFilterLabel}”.</p>
+	                            <button type="button" onClick={() => setActiveFilter('all')}>Voir tous les avatars</button>
+	                        </div>
+	                    ) : null}
                 </section>
             </section>
         </main>
     );
 }
 
-function Header({ session, onNotifications }) {
+function Header({ session }) {
     return (
         <header className="site-header">
             <button className="brand brand-button" type="button" onClick={() => session.navigate('create')}>
@@ -286,7 +263,7 @@ function Header({ session, onNotifications }) {
                 <button type="button" onClick={() => session.navigate('profile')}>Profil</button>
             </nav>
             <div className="header-actions">
-                <button className="notification-button" type="button" onClick={onNotifications}></button>
+                <NotificationMenu session={session} />
                 <button className="logout-button" type="button" onClick={session.logout}>
                     Déconnexion
                 </button>

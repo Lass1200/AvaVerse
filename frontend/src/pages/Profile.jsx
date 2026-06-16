@@ -199,11 +199,11 @@ function activityText(status) {
 function Header({ session }) {
   return (
     <header className="site-header">
-      <button className="brand brand-button" type="button" onClick={() => session.navigate('create')}>
+      <button className="brand brand-button" type="button" onClick={() => session.navigate('home')}>
         <img src="/logo.png" alt="AvaVerse" />
       </button>
       <nav className="top-nav" aria-label="Navigation principale">
-        <button type="button" onClick={() => session.navigate('create')}>Accueil</button>
+        <button type="button" onClick={() => session.navigate('home')}>Accueil</button>
         <button type="button" onClick={() => session.navigate('create')}>Créer</button>
         <button type="button" onClick={() => session.navigate('library')}>Bibliothèque</button>
         <button className="active" type="button" onClick={() => session.navigate('profile')}>Profil</button>

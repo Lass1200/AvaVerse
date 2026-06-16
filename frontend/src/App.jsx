@@ -1,5 +1,6 @@
 import React, { useMemo, useState, useEffect } from 'react';
 import CreateAvatar from './pages/CreateAvatar.jsx';
+import Home from './pages/Home.jsx';
 import Login from './pages/Login.jsx';
 import MyAvatars from './pages/MyAvatars.jsx';
 import Profile from './pages/Profile.jsx';
@@ -25,7 +26,7 @@ export default function App() {
   const [token, setToken] = useState(null);
   const [isAdmin, setIsAdmin] = useState(false);
   const [pseudo, setPseudo] = useState('Utilisateur');
-  const [page, setPage] = useState('login');
+  const [page, setPage] = useState('home');
   const [isLoading, setIsLoading] = useState(true);
 
   // Fusion : Restauration de la session ET du pseudo au F5
@@ -45,7 +46,7 @@ export default function App() {
       setPseudo(savedPseudo || 'Utilisateur');
       setPage(savedPage || (userIsAdmin ? 'admin' : 'create'));
     } else {
-      setPage('login');
+      setPage(savedPage || 'home');
     }
     setIsLoading(false);
   }, []);
@@ -84,7 +85,7 @@ export default function App() {
         setToken(null);
         setIsAdmin(false);
         setPseudo('Utilisateur');
-        setPage('login');
+        setPage('home');
       },
       navigate(nextPage) {
         sessionStorage.setItem('avaverse_page', nextPage);
@@ -102,10 +103,12 @@ export default function App() {
   }
 
   if (!isAuthenticated) {
+    if (page === 'home') return <Home session={session} />;
     return page === 'register' ? <Register session={session} /> : <Login session={session} />;
   }
 
   // Aiguillage incluant la nouvelle page Profile
+  if (page === 'home') return <Home session={session} />;
   if (page === 'admin') return <Admin session={session} />;
   if (page === 'library') return <MyAvatars session={session} />;
   if (page === 'profile') return <Profile session={session} />;

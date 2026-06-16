@@ -100,11 +100,11 @@ export default function Register({ session }) {
 function Header({ session }) {
   return (
     <header className="site-header">
-      <button className="brand brand-button" type="button" onClick={() => session.navigate('login')}>
+      <button className="brand brand-button" type="button" onClick={() => session.navigate('home')}>
         <img src="/logo.png" alt="AvaVerse" />
       </button>
       <nav className="top-nav" aria-label="Navigation principale">
-        <button type="button" onClick={() => session.navigate('login')}>Accueil</button>
+        <button type="button" onClick={() => session.navigate('home')}>Accueil</button>
         <button className="active" type="button" onClick={() => session.navigate('register')}>Compte</button>
         <button type="button" onClick={() => session.navigate('login')}>Bibliothèque</button>
       </nav>

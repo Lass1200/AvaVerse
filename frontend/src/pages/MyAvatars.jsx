@@ -91,6 +91,20 @@ export default function MyAvatars({ session }) {
             alert(err.message);
         }
     };
+
+    const handleEdit = (avatar) => {
+        if (!avatar.selections || Object.keys(avatar.selections).length === 0) {
+            alert("Impossible de modifier cet avatar : ses paramètres de personnalisation ne sont pas disponibles.");
+            return;
+        }
+
+        localStorage.setItem('avaverse_edit_draft', JSON.stringify({
+            sourceId: avatar._id,
+            sourceName: avatar.nom,
+            selections: avatar.selections
+        }));
+        session.navigate('create');
+    };
     
 
     return (
@@ -205,10 +219,18 @@ export default function MyAvatars({ session }) {
                             {avatars.map((avatar) => (
                                 <article className="avatar-library-card" key={avatar._id}>
                                     <div className="avatar-card-preview">
-                                        <img
-                                            src={`http://127.0.0.1:8000${avatar.fichier}`}
-                                            alt={avatar.nom}
-                                        />
+                                        {avatar.svgContent ? (
+                                            <div
+                                                className="avatar-inline-svg"
+                                                aria-label={avatar.nom}
+                                                dangerouslySetInnerHTML={{ __html: avatar.svgContent }}
+                                            />
+                                        ) : (
+                                            <img
+                                                src={`http://127.0.0.1:8000${avatar.fichier}`}
+                                                alt={avatar.nom}
+                                            />
+                                        )}
                                     </div>
                                     
                                     <div className="avatar-card-body">
@@ -220,7 +242,7 @@ export default function MyAvatars({ session }) {
                                         </div>
                                         <p>{avatar.status === 'approved' ? 'SVG téléchargeable' : 'Validation admin requise'}</p>
                                         <div className="avatar-card-actions">
-                                            <button type="button">Modifier</button>
+                                            <button type="button" onClick={() => handleEdit(avatar)}>Modifier</button>
                                             <button
                                                 type="button"
                                                 disabled={avatar.status !== 'approved'}
@@ -261,7 +283,7 @@ function Header({ session, onNotifications }) {
                 <button type="button" onClick={() => session.navigate('create')}>Accueil</button>
                 <button type="button" onClick={() => session.navigate('create')}>Créer</button>
                 <button className="active" type="button" onClick={() => session.navigate('library')}>Bibliothèque</button>
-                <button type="button" onClick={() => session.navigate('library')}>Profil</button>
+                <button type="button" onClick={() => session.navigate('profile')}>Profil</button>
             </nav>
             <div className="header-actions">
                 <button className="notification-button" type="button" onClick={onNotifications}></button>

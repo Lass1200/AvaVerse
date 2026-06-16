@@ -25,7 +25,7 @@ export default function Login({ session }) {
     setLoading(true);
     try {
       const data = await loginWithPseudo(form);
-      session.login(data.token);
+      session.login(data.token, form.pseudo);
     } catch (error) {
       setStatus(error.message);
     } finally {

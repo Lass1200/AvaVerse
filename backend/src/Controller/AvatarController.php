@@ -131,12 +131,21 @@ class AvatarController extends AbstractController
         foreach ($avatars as $avatar) {
             $createdAtStr = $avatar->getCreatedAt() ? $avatar->getCreatedAt()->format('Y-m-d') : date('Y-m-d');
             $validatedAtStr = $avatar->getValidatedAt() ? $avatar->getValidatedAt()->format('Y-m-d') : null;
+            $svgContent = null;
+            $avatarFile = $avatar->getFichier();
+            $filePath = $avatarFile ? $this->getParameter('kernel.project_dir') . '/public' . $avatarFile : null;
+
+            if ($filePath && is_file($filePath)) {
+                $svgContent = file_get_contents($filePath);
+            }
 
             $data[] = [
                 '_id' => $avatar->getId(),
                 'nom' => $avatar->getNom(),
-                'fichier' => $avatar->getFichier(),
+                'fichier' => $avatarFile,
+                'svgContent' => $svgContent,
                 'status' => $avatar->getStatus(),
+                'selections' => $avatar->getSelections(),
                 'createdAt' => $createdAtStr,
                 'validatedAt' => $validatedAtStr,
             ];

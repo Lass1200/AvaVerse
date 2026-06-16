@@ -33,7 +33,7 @@ export default function Register({ session }) {
       const data = await registerWithPseudo(form);
 
       if (data.token) {
-        session.login(data.token, data.role);
+        session.login(data.token, form.pseudo);
         return;
       }
       setStatus('Compte créé avec succès.');

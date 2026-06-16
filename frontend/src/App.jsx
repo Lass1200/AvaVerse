@@ -2,6 +2,7 @@ import React, { useMemo, useState } from 'react';
 import CreateAvatar from './pages/CreateAvatar.jsx';
 import Login from './pages/Login.jsx';
 import MyAvatars from './pages/MyAvatars.jsx';
+import Profile from './pages/Profile.jsx';
 import Register from './pages/Register.jsx';
 import Admin from './pages/Admin.jsx';
 
@@ -24,6 +25,7 @@ function decodeToken(token) {
 
 export default function App() {
   const [token, setToken] = useState(() => localStorage.getItem('avaverse_token'));
+  const [pseudo, setPseudo] = useState(() => localStorage.getItem('avaverse_pseudo') || 'ZakMarket');
   const [page, setPage] = useState(() => (localStorage.getItem('avaverse_token') ? 'create' : 'login'));
 
   const isAuthenticated = Boolean(token);
@@ -37,9 +39,12 @@ export default function App() {
       isAdmin: role === 'admin',
       token,
       role,
-      login(authToken) {
+      pseudo,
+      login(authToken, userPseudo = 'ZakMarket') {
         localStorage.setItem('avaverse_token', authToken);
+        localStorage.setItem('avaverse_pseudo', userPseudo);
         setToken(authToken);
+        setPseudo(userPseudo);
 
         const decodedToken = decodeToken(authToken);
         if (decodedToken?.role === 'admin') {
@@ -50,14 +55,16 @@ export default function App() {
       },
       logout() {
         localStorage.removeItem('avaverse_token');
+        localStorage.removeItem('avaverse_pseudo');
         setToken(null);
+        setPseudo('ZakMarket');
         setPage('login');
       },
       navigate(nextPage) {
         setPage(nextPage);
       },
     };
-  }, [isAuthenticated, token]);
+  }, [isAuthenticated, token, pseudo]);
 
   // Route Admin
   if (isAuthenticated && page === 'admin') {
@@ -74,7 +81,12 @@ export default function App() {
     return <MyAvatars session={session} />;
   }
 
-  // Route 3 : Inscription
+  // Route 3 : Profil
+  if (isAuthenticated && page === 'profile') {
+    return <Profile session={session} />;
+  }
+
+  // Route 4 : Inscription
   if (page === 'register') {
     return <Register session={session} />;
   }

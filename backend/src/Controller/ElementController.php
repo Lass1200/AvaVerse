@@ -56,27 +56,33 @@ class ElementController extends AbstractController
 
     // T15 — Ajout élément admin
     #[Route('/api/admin/elements', methods: ['POST'])]
-    public function adminAddElement(Request $request): JsonResponse
-    {
-        $this->denyAccessUnlessGranted('ROLE_ADMIN');
+   // T15 — Ajout élément admin
+#[Route('/api/admin/elements', methods: ['POST'])]
+public function adminAddElement(Request $request): JsonResponse
+{
+    $this->denyAccessUnlessGranted('ROLE_ADMIN');
 
-        $data = json_decode($request->getContent(), true);
+    $data = json_decode($request->getContent(), true);
 
-        if (empty($data['nom']) || empty($data['categorie']) || empty($data['svgContent'])) {
-            return $this->json(['error' => 'nom, categorie et svgContent requis'], 400);
-        }
-
-        $element = new Element();
-        $element->setNom($data['nom']);
-        $element->setCategorie($data['categorie']);
-        $element->setSvgContent($data['svgContent']);
-        $element->setActif(true);
-
-        $this->dm->persist($element);
-        $this->dm->flush();
-
-        return $this->json(['message' => 'Élément ajouté', '_id' => $element->getId()], 201);
+    if (empty($data['nom']) || empty($data['categorie']) || empty($data['svgContent'])) {
+        return $this->json(['error' => 'nom, categorie et svgContent requis'], 400);
     }
+
+    // Nettoyage : on retire les balises <svg ...> et </svg> pour ne garder que le contenu interne
+    $cleanedSvg = preg_replace('/<\/?svg[^>]*>/', '', $data['svgContent']);
+    $cleanedSvg = trim($cleanedSvg);
+
+    $element = new Element();
+    $element->setNom($data['nom']);
+    $element->setCategorie($data['categorie']);
+    $element->setSvgContent($cleanedSvg);
+    $element->setActif(true);
+
+    $this->dm->persist($element);
+    $this->dm->flush();
+
+    return $this->json(['message' => 'Élément ajouté', '_id' => $element->getId()], 201);
+}
 
     // T16 — Suppression élément admin
     #[Route('/api/admin/elements/{id}', methods: ['DELETE'])]

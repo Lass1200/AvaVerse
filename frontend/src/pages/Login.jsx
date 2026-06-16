@@ -3,7 +3,7 @@ import { loginWithPseudo } from '../services/api.js';
 
 export default function Login({ session }) {
   const [form, setForm] = useState({
-    pseudo: 'ZakMarket2026',
+    pseudo: '',
     password: ''
   });
   const [status, setStatus] = useState('');

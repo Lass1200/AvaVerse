@@ -1267,3 +1267,165 @@ img {
     justify-content: flex-start;
   }
 }
+
+/* ============ Catalogue SVG (admin) ============ */
+
+.admin-catalog {
+  display: grid;
+  gap: 24px;
+}
+
+.catalog-add-form {
+  display: grid;
+  gap: 4px;
+  padding: 22px 20px;
+  border: 1px solid rgba(231, 234, 243, .96);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, .97);
+  box-shadow: 0 26px 70px rgba(18, 24, 38, .11);
+}
+
+.catalog-add-form h2 {
+  margin: 0 0 14px;
+  color: var(--ink);
+  font-size: 22px;
+  line-height: 1.1;
+}
+
+.catalog-add-form label {
+  margin: 12px 0 6px;
+  color: var(--ink);
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.catalog-add-form input,
+.catalog-add-form select {
+  width: 100%;
+  height: 42px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 0 12px;
+  background: #fff;
+  color: var(--ink);
+  outline: none;
+  transition: border-color .18s ease, box-shadow .18s ease;
+}
+
+.catalog-add-form input[type="file"] {
+  padding: 8px 12px;
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--muted);
+}
+
+.catalog-add-form input:focus,
+.catalog-add-form select:focus {
+  border-color: var(--violet);
+  box-shadow: 0 0 0 3px rgba(124, 60, 255, .12);
+}
+
+.catalog-add-form .primary-button {
+  width: auto;
+  min-height: 42px;
+  padding: 0 22px;
+  justify-self: start;
+}
+
+.svg-preview-box {
+  display: grid;
+  width: 120px;
+  height: 120px;
+  margin: 14px 0 4px;
+  place-items: center;
+  border: 1px dashed rgba(124, 60, 255, .24);
+  border-radius: 10px;
+  background: linear-gradient(180deg, #ecfbff 0%, #f8fbff 100%);
+}
+
+.svg-preview-box svg {
+  width: 78%;
+  height: 78%;
+}
+
+.catalog-list h2 {
+  margin: 0 0 14px;
+  color: var(--ink);
+  font-size: 22px;
+  line-height: 1.1;
+}
+
+.catalog-category {
+  margin-bottom: 22px;
+}
+
+.catalog-category h3 {
+  margin: 0 0 10px;
+  color: var(--violet);
+  font-size: 11px;
+  font-weight: 950;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+}
+
+.catalog-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 14px;
+}
+
+.catalog-item {
+  display: grid;
+  gap: 10px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 14px;
+  background: #fff;
+  box-shadow: 0 14px 34px rgba(18, 24, 38, .06);
+}
+
+.catalog-item.inactive {
+  opacity: .5;
+}
+
+.catalog-item-preview {
+  display: grid;
+  min-height: 90px;
+  place-items: center;
+  border-radius: 8px;
+  background: linear-gradient(180deg, #ecfbff 0%, #f8fbff 100%);
+}
+
+.catalog-item-preview svg {
+  width: 70%;
+  height: 70%;
+}
+
+.catalog-item strong {
+  color: var(--ink);
+  font-size: 12px;
+  font-weight: 950;
+  text-align: center;
+  overflow-wrap: anywhere;
+}
+
+.catalog-item .danger-button {
+  min-height: 34px;
+  border: 1px solid #ffd5d8;
+  border-radius: 7px;
+  background: #fff0f0;
+  color: #c73545;
+  font-size: 11px;
+  font-weight: 950;
+}
+
+@media (max-width: 720px) {
+  .catalog-add-form .primary-button {
+    width: 100%;
+    justify-self: stretch;
+  }
+
+  .catalog-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}

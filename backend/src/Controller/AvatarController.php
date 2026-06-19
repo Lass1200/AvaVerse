@@ -28,66 +28,7 @@ class AvatarController extends AbstractController
         $selections = $data['selections'] ?? [];
         $nom = $data['nom'] ?? 'Mon Avatar';
 
-        // Couleurs de peau (alignées sur utils/svgFragment.js)
-        $skinColors = [
-            'Light' => '#EDB98A',
-            'Tanned' => '#FD9841',
-            'Yellow' => '#F8D25C',
-            'Pale' => '#FFDBB4',
-            'Brown' => '#D08B5B',
-            'DarkBrown' => '#AE5D29',
-            'Black' => '#614335',
-        ];
-        $skinName = $selections['skin'] ?? 'Light';
-        $skinFill = $skinColors[$skinName] ?? $skinColors['Light'];
-
-        // Path du corps (identique à BODY_PATH dans AvatarRenderer.jsx)
-        $bodyPath = 'M124,144.610951 L124,163 L128,163 L128,163 C167.764502,163 200,195.235498 200,235 L200,244 L0,244 L0,235 C-4.86974701e-15,195.235498 32.235498,163 72,163 L72,163 L76,163 L76,144.610951 C58.7626345,136.422372 46.3722246,119.687011 44.3051388,99.8812385 C38.4803105,99.0577866 34,94.0521096 34,88 L34,74 C34,68.0540074 38.3245733,63.1180731 44,62.1659169 L44,56 L44,56 C44,25.072054 69.072054,5.68137151e-15 100,0 L100,0 L100,0 C130.927946,-5.68137151e-15 156,25.072054 156,56 L156,62.1659169 C161.675427,63.1180731 166,68.0540074 166,74 L166,88 C166,94.0521096 161.51969,99.0577866 155.694861,99.8812385 C153.627775,119.687011 141.237365,136.422372 124,144.610951 Z';
-
-        $order = ['background', 'clothes', 'top'];
-$faceOrder = ['mouth', 'nose', 'eyes', 'eyebrow', 'facialhair'];
-
-        $svgContent = '<svg viewBox="0 0 264 280" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">';
-
-        // Body : path en mask + rect coloré avec la couleur de peau
-        $svgContent .= '<defs><path d="' . $bodyPath . '" id="av-body-path" /></defs>';
-        $svgContent .= '<g transform="translate(32.000000, 36.000000)">';
-        $svgContent .= '<mask id="av-body-mask" fill="white"><use xlink:href="#av-body-path" /></mask>';
-        $svgContent .= '<use fill="#D0C6AC" xlink:href="#av-body-path" />';
-        $svgContent .= '<g mask="url(#av-body-mask)" fill="' . $skinFill . '"><rect x="0" y="0" width="264" height="280" /></g>';
-        $svgContent .= '</g>';
-
-        // Vêtements, cheveux, etc.
-        foreach ($order as $categorie) {
-            if (!empty($selections[$categorie])) {
-                $element = $this->dm->getRepository(Element::class)->findOneBy([
-                    'nom' => $selections[$categorie],
-                    'categorie' => $categorie,
-                    'actif' => true
-                ]);
-                if ($element) {
-                    $svgContent .= $element->getSvgContent();
-                }
-            }
-        }
-
-        // Visage : groupe avec le même décalage que AvatarRenderer.jsx
-        $svgContent .= '<g transform="translate(76.000000, 82.000000)" fill="#000000">';
-        foreach ($faceOrder as $categorie) {
-            if (!empty($selections[$categorie])) {
-                $element = $this->dm->getRepository(Element::class)->findOneBy([
-                    'nom' => $selections[$categorie],
-                    'categorie' => $categorie,
-                    'actif' => true
-                ]);
-                if ($element) {
-                    $svgContent .= $element->getSvgContent();
-                }
-            }
-        }
-        $svgContent .= '</g>';
-
-        $svgContent .= '</svg>';
+        $svgContent = $this->buildAvatarSvg($selections);
 
         // --- CORRECTION BLINDAGE DOSSIER ---
         $uploadDir = $this->getParameter('kernel.project_dir') . '/public/avatars/';
@@ -105,6 +46,7 @@ $faceOrder = ['mouth', 'nose', 'eyes', 'eyebrow', 'facialhair'];
         $avatar->setFichier('/avatars/' . $filename);
         $avatar->setSelections($selections);
         $avatar->setStatus('pending');
+        $avatar->setRejectionReason(null);
 
         if (method_exists($avatar, 'setCreatedAt') && !$avatar->getCreatedAt()) {
             $avatar->setCreatedAt(new \DateTime());
@@ -145,6 +87,7 @@ $faceOrder = ['mouth', 'nose', 'eyes', 'eyebrow', 'facialhair'];
                 'fichier' => $avatarFile,
                 'svgContent' => $svgContent,
                 'status' => $avatar->getStatus(),
+                'rejectionReason' => $avatar->getRejectionReason(),
                 'selections' => $avatar->getSelections(),
                 'createdAt' => $createdAtStr,
                 'validatedAt' => $validatedAtStr,
@@ -152,6 +95,53 @@ $faceOrder = ['mouth', 'nose', 'eyes', 'eyebrow', 'facialhair'];
         }
 
         return $this->json($data);
+    }
+
+    #[Route('/api/avatars/{id}', methods: ['PUT'])]
+    public function updateAvatar(string $id, Request $request): JsonResponse
+    {
+        $this->denyAccessUnlessGranted('IS_AUTHENTICATED_FULLY');
+
+        $userId = $this->getUser()->getUserIdentifier();
+        $avatar = $this->dm->getRepository(Avatar::class)->find($id);
+
+        if (!$avatar || $avatar->getUserId() !== $userId) {
+            return $this->json(['error' => 'Avatar introuvable ou non autorisé'], 403);
+        }
+
+        $data = json_decode($request->getContent(), true);
+        $selections = $data['selections'] ?? [];
+        $nom = $data['nom'] ?? $avatar->getNom();
+        $svgContent = $this->buildAvatarSvg($selections);
+
+        $uploadDir = $this->getParameter('kernel.project_dir') . '/public/avatars/';
+        if (!is_dir($uploadDir)) {
+            mkdir($uploadDir, 0777, true);
+        }
+
+        $oldFile = $avatar->getFichier();
+        $oldPath = $oldFile ? $this->getParameter('kernel.project_dir') . '/public' . $oldFile : null;
+        if ($oldPath && is_file($oldPath)) {
+            unlink($oldPath);
+        }
+
+        $filename = uniqid('avatar_') . '.svg';
+        file_put_contents($uploadDir . $filename, $svgContent);
+
+        $avatar->setNom($nom);
+        $avatar->setFichier('/avatars/' . $filename);
+        $avatar->setSelections($selections);
+        $avatar->setStatus('pending');
+        $avatar->setValidatedAt(null);
+        $avatar->setRejectionReason(null);
+
+        $this->dm->flush();
+
+        return $this->json([
+            'message' => 'Avatar modifié et remis en attente de validation',
+            '_id' => $avatar->getId(),
+            'status' => 'pending'
+        ]);
     }
 
     // T8 — Suppression avatar
@@ -207,4 +197,61 @@ $faceOrder = ['mouth', 'nose', 'eyes', 'eyebrow', 'facialhair'];
             ]
         );
     }
+
+    private function buildAvatarSvg(array $selections): string
+    {
+        $skinColors = [
+            'Light' => '#EDB98A',
+            'Tanned' => '#FD9841',
+            'Yellow' => '#F8D25C',
+            'Pale' => '#FFDBB4',
+            'Brown' => '#D08B5B',
+            'DarkBrown' => '#AE5D29',
+            'Black' => '#614335',
+        ];
+        $skinName = $selections['skin'] ?? 'Light';
+        $skinFill = $skinColors[$skinName] ?? $skinColors['Light'];
+        $bodyPath = 'M124,144.610951 L124,163 L128,163 L128,163 C167.764502,163 200,195.235498 200,235 L200,244 L0,244 L0,235 C-4.86974701e-15,195.235498 32.235498,163 72,163 L72,163 L76,163 L76,144.610951 C58.7626345,136.422372 46.3722246,119.687011 44.3051388,99.8812385 C38.4803105,99.0577866 34,94.0521096 34,88 L34,74 C34,68.0540074 38.3245733,63.1180731 44,62.1659169 L44,56 L44,56 C44,25.072054 69.072054,5.68137151e-15 100,0 L100,0 L100,0 C130.927946,-5.68137151e-15 156,25.072054 156,56 L156,62.1659169 C161.675427,63.1180731 166,68.0540074 166,74 L166,88 C166,94.0521096 161.51969,99.0577866 155.694861,99.8812385 C153.627775,119.687011 141.237365,136.422372 124,144.610951 Z';
+        $order = ['background', 'clothes', 'top'];
+        $faceOrder = ['mouth', 'nose', 'eyes', 'eyebrow', 'facialhair'];
+
+        $svgContent = '<svg viewBox="0 0 264 280" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">';
+        $svgContent .= '<defs><path d="' . $bodyPath . '" id="av-body-path" /></defs>';
+        $svgContent .= '<g transform="translate(32.000000, 36.000000)">';
+        $svgContent .= '<mask id="av-body-mask" fill="white"><use xlink:href="#av-body-path" /></mask>';
+        $svgContent .= '<use fill="#D0C6AC" xlink:href="#av-body-path" />';
+        $svgContent .= '<g mask="url(#av-body-mask)" fill="' . $skinFill . '"><rect x="0" y="0" width="264" height="280" /></g>';
+        $svgContent .= '</g>';
+
+        foreach ($order as $categorie) {
+            if (!empty($selections[$categorie])) {
+                $element = $this->dm->getRepository(Element::class)->findOneBy([
+                    'nom' => $selections[$categorie],
+                    'categorie' => $categorie,
+                    'actif' => true
+                ]);
+                if ($element) {
+                    $svgContent .= $element->getSvgContent();
+                }
+            }
+        }
+
+        $svgContent .= '<g transform="translate(76.000000, 82.000000)" fill="#000000">';
+        foreach ($faceOrder as $categorie) {
+            if (!empty($selections[$categorie])) {
+                $element = $this->dm->getRepository(Element::class)->findOneBy([
+                    'nom' => $selections[$categorie],
+                    'categorie' => $categorie,
+                    'actif' => true
+                ]);
+                if ($element) {
+                    $svgContent .= $element->getSvgContent();
+                }
+            }
+        }
+        $svgContent .= '</g></svg>';
+
+        return $svgContent;
+    }
+
 }

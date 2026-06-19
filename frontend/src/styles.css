@@ -1309,6 +1309,7 @@ img {
   color: #5f6880;
   font-size: 13px;
   font-weight: 900;
+  white-space: nowrap;
 }
 
 .submission-actions {
@@ -1329,6 +1330,18 @@ img {
   font-weight: 950;
 }
 
+.submission-actions .approve-action {
+  border-color: transparent;
+  background: #71d8c9;
+  color: var(--ink);
+}
+
+.submission-actions .reject-action {
+  border-color: #ffd5d8;
+  background: #fff0f0;
+  color: #c73545;
+}
+
 .admin-preview-card {
   padding: 16px;
 }
@@ -1345,15 +1358,48 @@ img {
   width: min(190px, 82%);
 }
 
+.admin-inline-svg {
+  display: grid;
+  width: min(190px, 82%);
+  place-items: center;
+}
+
+.admin-inline-svg svg {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
 .admin-preview-body {
   padding: 14px 8px 18px;
 }
 
 .admin-preview-body h3 {
-  margin: 0 0 22px;
+  margin: 0 0 14px;
   color: var(--ink);
   font-size: 13px;
   font-weight: 950;
+}
+
+.reject-reason-field {
+  display: grid;
+  gap: 8px;
+  margin-bottom: 14px;
+  color: var(--ink);
+  font-size: 12px;
+  font-weight: 950;
+}
+
+.reject-reason-field textarea {
+  min-height: 82px;
+  resize: vertical;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 10px;
+  color: var(--ink);
+  font: inherit;
+  font-weight: 800;
+  background: #fff;
 }
 
 .admin-preview-actions {

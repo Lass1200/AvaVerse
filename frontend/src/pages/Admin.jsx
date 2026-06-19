@@ -9,6 +9,7 @@ export default function Admin({ session }) {
   const [adminTab, setAdminTab] = useState('moderation'); // 'moderation' | 'catalog'
   const [selected, setSelected] = useState(null);
   const [status, setStatus] = useState('Chargement des soumissions...');
+  const [rejectionReason, setRejectionReason] = useState('');
 
   useEffect(() => {
     if (!session.isAdmin) return;
@@ -35,14 +36,14 @@ export default function Admin({ session }) {
     return response.json();
   }
 
-  async function moderateAvatar(token, id, nextStatus) {
+  async function moderateAvatar(token, id, nextStatus, reason = '') {
     const response = await fetch(`${API_URL}/api/admin/avatars/${id}`, {
       method: 'PATCH',
       headers: {
         'Content-Type': 'application/json',
         Authorization: `Bearer ${token}`,
       },
-      body: JSON.stringify({ status: nextStatus }),
+      body: JSON.stringify({ status: nextStatus, rejectionReason: reason }),
     });
 
     if (!response.ok) {
@@ -54,8 +55,13 @@ export default function Admin({ session }) {
 
   async function handleModerate(id, nextStatus) {
     setStatus('');
+    if (nextStatus === 'rejected' && !rejectionReason.trim()) {
+      setStatus('Merci d’indiquer un motif de refus avant de refuser l’avatar.');
+      return;
+    }
     try {
-      await moderateAvatar(session.token, id, nextStatus);
+      await moderateAvatar(session.token, id, nextStatus, rejectionReason.trim());
+      setRejectionReason('');
       setPendingSubmissions((current) => {
         const nextItems = current.filter((avatar) => avatar._id !== id);
         setSelected(nextItems[0] || null);
@@ -125,11 +131,6 @@ export default function Admin({ session }) {
 
                     <span className="waiting-pill">En attente</span>
                     <span className="submission-delay">{formatDelay(submission.createdAt)}</span>
-
-                    <div className="submission-actions">
-                      <button type="button" onClick={() => handleModerate(submission._id, 'approved')} aria-label={`Valider ${submission.nom}`}>✓</button>
-                      <button type="button" onClick={() => handleModerate(submission._id, 'rejected')} aria-label={`Refuser ${submission.nom}`}>×</button>
-                    </div>
                   </article>
                 ))}
               </div>
@@ -139,7 +140,14 @@ export default function Admin({ session }) {
               {selected ? (
                 <>
                   <div className="admin-avatar-preview">
-                    {selected.selections ? (
+                    {selected.svgContent ? (
+                      <div
+                        className="admin-inline-svg"
+                        role="img"
+                        aria-label={selected.nom}
+                        dangerouslySetInnerHTML={{ __html: selected.svgContent }}
+                      />
+                    ) : selected.selections ? (
                       <AvatarRenderer selections={selected.selections} />
                     ) : (
                       <img src={`${API_URL}${selected.fichier}`} alt="Avatar" />
@@ -147,14 +155,19 @@ export default function Admin({ session }) {
                   </div>
                   <div className="admin-preview-body">
                     <h3>{selected.nom}</h3>
+                    <label className="reject-reason-field">
+                      <span>Motif de refus</span>
+                      <textarea
+                        value={rejectionReason}
+                        onChange={(event) => setRejectionReason(event.target.value)}
+                        placeholder="Expliquez pourquoi l’avatar est refusé..."
+                      />
+                    </label>
                     <div className="admin-preview-actions">
                       <button type="button" onClick={() => handleModerate(selected._id, 'approved')}>Approuver</button>
                       <button className="reject-button" type="button" onClick={() => handleModerate(selected._id, 'rejected')}>Refusé</button>
                     </div>
                   </div>
-                  <button className="validate-download-button" type="button" onClick={() => handleModerate(selected._id, 'approved')}>
-                    Valider le téléchargement
-                  </button>
                 </>
               ) : (
                 <div className="admin-preview-empty">

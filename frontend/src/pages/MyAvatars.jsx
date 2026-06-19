@@ -209,7 +209,13 @@ export default function MyAvatars({ session }) {
                                                 {statusLabels[avatar.status] || avatar.status}
                                             </span>
                                         </div>
-                                        <p>{avatar.status === 'approved' ? 'SVG téléchargeable' : 'Validation admin requise'}</p>
+                                        <p>
+                                            {avatar.status === 'approved'
+                                                ? 'SVG téléchargeable'
+                                                : avatar.status === 'rejected'
+                                                    ? `Motif de refus : ${avatar.rejectionReason || 'Aucun motif précisé.'}`
+                                                    : 'Validation admin requise'}
+                                        </p>
                                         <div className="avatar-card-actions">
                                             <button type="button" onClick={() => handleEdit(avatar)}>Modifier</button>
                                             <button

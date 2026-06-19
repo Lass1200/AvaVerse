@@ -25,6 +25,9 @@ class Avatar
     #[MongoDB\Field(type: 'string')]
     private string $status = 'pending';
 
+    #[MongoDB\Field(type: 'string')]
+    private ?string $rejectionReason = null;
+
     #[MongoDB\Field(type: 'date')]
     private \DateTime $createdAt;
 
@@ -47,6 +50,8 @@ class Avatar
     public function setSelections(array $selections): void { $this->selections = $selections; }
     public function getStatus(): string { return $this->status; }
     public function setStatus(string $status): void { $this->status = $status; }
+    public function getRejectionReason(): ?string { return $this->rejectionReason; }
+    public function setRejectionReason(?string $rejectionReason): void { $this->rejectionReason = $rejectionReason; }
     public function getCreatedAt(): \DateTime { return $this->createdAt; }
     public function getValidatedAt(): ?\DateTime { return $this->validatedAt; }
     public function setValidatedAt(?\DateTime $validatedAt): void { $this->validatedAt = $validatedAt; }

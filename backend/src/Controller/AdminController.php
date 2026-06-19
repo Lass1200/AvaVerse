@@ -25,12 +25,23 @@ class AdminController extends AbstractController
 
         $data = [];
         foreach ($avatars as $avatar) {
+            $avatarFile = $avatar->getFichier();
+            $filePath = $avatarFile ? $this->getParameter('kernel.project_dir') . '/public' . $avatarFile : null;
+            $svgContent = null;
+
+            if ($filePath && is_file($filePath)) {
+                $svgContent = file_get_contents($filePath);
+            }
+
             $data[] = [
                 '_id'         => $avatar->getId(),
                 'userId'      => $avatar->getUserId(),
                 'nom'         => $avatar->getNom(),
-                'fichier'     => $avatar->getFichier(),
+                'fichier'     => $avatarFile,
+                'svgContent'  => $svgContent,
+                'selections'  => $avatar->getSelections(),
                 'status'      => $avatar->getStatus(),
+                'rejectionReason' => $avatar->getRejectionReason(),
                 'createdAt'   => $avatar->getCreatedAt()->format('Y-m-d H:i'),
                 'validatedAt' => $avatar->getValidatedAt()?->format('Y-m-d H:i'),
             ];
@@ -47,6 +58,7 @@ class AdminController extends AbstractController
 
         $data   = json_decode($request->getContent(), true);
         $status = $data['status'] ?? null;
+        $rejectionReason = trim((string) ($data['rejectionReason'] ?? ''));
 
         if (!in_array($status, ['approved', 'rejected'])) {
             return $this->json(['error' => 'Status invalide (approved ou rejected)'], 400);
@@ -60,6 +72,7 @@ class AdminController extends AbstractController
 
         $avatar->setStatus($status);
         $avatar->setValidatedAt(new \DateTime());
+        $avatar->setRejectionReason($status === 'rejected' ? ($rejectionReason ?: 'Aucun motif précisé par l’administrateur.') : null);
 
         $this->dm->flush();
 

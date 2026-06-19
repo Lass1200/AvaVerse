@@ -43,7 +43,7 @@ export default function CreateAvatar({ session }) {
                 ...DEFAULT_SELECTIONS,
                 ...draft.selections
             });
-            setAvatarName(`Copie de ${draft.sourceName || 'Mon Avatar'}`);
+            setAvatarName(draft.sourceName || 'Mon Avatar');
             setEditSource(draft);
         }
 
@@ -51,7 +51,7 @@ export default function CreateAvatar({ session }) {
             .then((data) => {
                 setElements(data);
                 setActiveCategory('skin');
-                setStatus(draft ? 'Modification depuis un avatar existant : l’original reste validé, la copie sera soumise à l’admin.' : '');
+                setStatus(draft ? 'Modification de l’avatar existant : après enregistrement, il repasse en attente de validation admin.' : '');
             })
             .catch((err) => {
                 console.error(err);
@@ -121,8 +121,12 @@ export default function CreateAvatar({ session }) {
         setStatus('Sauvegarde en cours...');
 
         try {
-            const response = await fetch('http://127.0.0.1:8000/api/avatars', {
-                method: 'POST',
+            const url = editSource?.sourceId
+                ? `http://127.0.0.1:8000/api/avatars/${editSource.sourceId}`
+                : 'http://127.0.0.1:8000/api/avatars';
+
+            const response = await fetch(url, {
+                method: editSource?.sourceId ? 'PUT' : 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${token}` // Utilise le token détecté
@@ -139,7 +143,7 @@ export default function CreateAvatar({ session }) {
                 throw new Error(data.message || data.error || 'Erreur lors de la sauvegarde');
             }
 
-            setStatus('Avatar soumis avec succès !');
+            setStatus(editSource ? 'Avatar modifié et remis en attente de validation !' : 'Avatar soumis avec succès !');
             localStorage.removeItem('avaverse_edit_draft');
             setEditSource(null);
             setTimeout(() => {
@@ -160,10 +164,10 @@ export default function CreateAvatar({ session }) {
             <section className="creator-shell">
                 <div className="creator-heading">
                     <p>CRÉATION D’AVATAR</p>
-                    <h1>{editSource ? 'Modifier une copie' : 'Personnalisation'}</h1>
+                    <h1>{editSource ? 'Modifier l’avatar' : 'Personnalisation'}</h1>
                     {editSource ? (
                         <span>
-                            Avatar source : {editSource.sourceName}. Enregistrer crée une nouvelle demande de validation.
+                            Avatar : {editSource.sourceName}. Enregistrer modifie cet avatar et le remet en attente.
                         </span>
                     ) : null}
                 </div>
@@ -225,7 +229,7 @@ export default function CreateAvatar({ session }) {
                                 disabled={isSaving}
                                 style={{ width: '100%', padding: '10px', backgroundColor: '#007bff', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}
                             >
-                                {isSaving ? 'Envoi...' : editSource ? 'Soumettre la copie modifiée' : 'Soumettre pour validation'}
+                                {isSaving ? 'Envoi...' : editSource ? 'Enregistrer et soumettre à nouveau' : 'Soumettre pour validation'}
                             </button>
                         </div>
                     </aside>

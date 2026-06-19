@@ -140,7 +140,7 @@ class AdminController extends AbstractController
         }
         $svgContent .= '</g>';
 
-        // Facial hair is positioned at the global avatar level.
+
         if (!empty($selections['facialhair'])) {
             $element = $this->dm->getRepository(Element::class)->findOneBy([
                 'nom' => $selections['facialhair'],

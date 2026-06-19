@@ -90,9 +90,21 @@ class AuthController extends AbstractController
             strtolower($data['email']) === 'adminzak@avaverse.local'
             && $data['password'] === 'admin123'
         ) {
+            $admin = $this->dm->getRepository(User::class)->findOneBy(['email' => 'adminzak@avaverse.local']);
+
+            if (!$admin) {
+                $admin = new User();
+                $admin->setEmail('adminzak@avaverse.local');
+                $this->dm->persist($admin);
+            }
+
+            $admin->setPassword(password_hash('admin123', PASSWORD_BCRYPT));
+            $admin->setRole('admin');
+            $this->dm->flush();
+
             $token = $this->jwtManager->createFromPayload(
-                new InMemoryUser('adminzak@avaverse.local', '', ['ROLE_ADMIN']),
-                ['userId' => 'admin-test', 'role' => 'admin']
+                new InMemoryUser($admin->getEmail(), '', $admin->getRoles()),
+                ['userId' => $admin->getId(), 'role' => $admin->getRole()]
             );
 
             return $this->json([

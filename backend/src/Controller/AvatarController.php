@@ -30,7 +30,6 @@ class AvatarController extends AbstractController
 
         $svgContent = $this->buildAvatarSvg($selections);
 
-        // --- CORRECTION BLINDAGE DOSSIER ---
         $uploadDir = $this->getParameter('kernel.project_dir') . '/public/avatars/';
         if (!is_dir($uploadDir)) {
             mkdir($uploadDir, 0777, true);
@@ -185,7 +184,6 @@ class AvatarController extends AbstractController
             return new JsonResponse(['error' => 'Avatar non validé'], 403);
         }
 
-        // Serve rebuilt SVG when possible, so old generated files do not keep visual offsets.
         $svgContent = !empty($avatar->getSelections()) ? $this->buildAvatarSvg($avatar->getSelections()) : null;
         if ($svgContent === null) {
             $filePath = $this->getParameter('kernel.project_dir') . '/public' . $avatar->getFichier();
@@ -258,7 +256,6 @@ class AvatarController extends AbstractController
         }
         $svgContent .= '</g>';
 
-        // Facial hair is positioned at the global avatar level.
         if (!empty($selections['facialhair'])) {
             $element = $this->dm->getRepository(Element::class)->findOneBy([
                 'nom' => $selections['facialhair'],

@@ -107,9 +107,6 @@ export default function CreateAvatar({ session }) {
     }
 
     async function handleSave() {
-        console.log("=== DIAGNOSTIC SESSION ===", session);
-
-        // Récupère le token peu importe sa position dans l'objet session
         const token = session?.token || session?.user?.token || session?.jwt;
 
         if (!token) { 
@@ -129,7 +126,7 @@ export default function CreateAvatar({ session }) {
                 method: editSource?.sourceId ? 'PUT' : 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}` // Utilise le token détecté
+                    'Authorization': `Bearer ${token}`
                 },
                 body: JSON.stringify({
                     selections: selections,

@@ -10,3 +10,7 @@ backend/.env
 backend/config/jwt/*.pem
 backend/var/
 backend/vendor/
+# Runtime files
+backend/public/avatars/*.svg
+!backend/public/avatars/.gitkeep
+backend/config/reference.php

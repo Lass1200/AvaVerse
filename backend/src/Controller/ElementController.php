@@ -56,9 +56,7 @@ class ElementController extends AbstractController
 
     // T15 — Ajout élément admin
     #[Route('/api/admin/elements', methods: ['POST'])]
-   // T15 — Ajout élément admin
-#[Route('/api/admin/elements', methods: ['POST'])]
-public function adminAddElement(Request $request): JsonResponse
+    public function adminAddElement(Request $request): JsonResponse
 {
     $this->denyAccessUnlessGranted('ROLE_ADMIN');
 
